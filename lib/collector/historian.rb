@@ -2,12 +2,18 @@ require_relative "./historian/cloud_watch"
 require_relative "./historian/cf_metrics"
 require_relative "./historian/data_dog"
 require_relative "./historian/tsdb"
+require_relative "./historian/kairos"
 require "httparty"
 
 module Collector
   class Historian
     def self.build
       historian = new
+
+      if Config.kairos
+        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, Config.kairos_port, Confir.kairos_metric_name))
+        Config.logger.info("collector.historian-adapter.added-kairos", host: Config.kairos_host)
+      end
 
       if Config.tsdb
         historian.add_adapter(Historian::Tsdb.new(Config.tsdb_host, Config.tsdb_port))

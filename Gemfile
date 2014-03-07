@@ -5,6 +5,7 @@ gem "vcap_common", git: "https://github.com/cloudfoundry/vcap-common.git"
 gem "aws-sdk", require: false
 gem "steno"
 gem "httparty"
+gem "pry"
 
 group :test do
   gem "rake"

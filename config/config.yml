@@ -2,9 +2,13 @@
 index: 0
 logging:
   level: info
-  file: /tmp/collector_test.log
+  file: /home/ubuntu/collector/logs
   syslog: vcap.collector
-mbus: nats://localhost:4222
+mbus: nats://nats:XENcloud123@10.10.15.220:4222
+kairos:
+  host: http://kairosdb.ac.crcxnet.com/api/v1/datapoints/
+  port: 80
+  metric-name: cf-collector
 intervals:
   discover: 60
   varz: 10

@@ -4,7 +4,7 @@ module Collector
   # Singleton config used throughout
   class Config
     class << self
-      attr_accessor :index, :tsdb_host, :tsdb_port, :aws_access_key_id,
+      attr_accessor :index, :tsdb_host, :tsdb_port, :kairos_host, :kairos_port, :kairos_metric_name, :aws_access_key_id,
         :aws_secret_access_key, :datadog_api_key, :datadog_application_key,
         :nats_uri, :discover_interval, :varz_interval, :healthz_interval,
         :prune_interval, :nats_ping_interval, :local_metrics_interval,
@@ -12,6 +12,10 @@ module Collector
 
       def tsdb
         tsdb_host && tsdb_port
+      end
+
+      def kairos
+          kairos_host && kairos_port && kairos_metric_name
       end
 
       def aws_cloud_watch
@@ -48,6 +52,10 @@ module Collector
         setup_logging(config["logging"])
 
         @deployment_name = config["deployment_name"] || "untitled_dev"
+
+        kairos_config = config["kairos"] || {}
+        @kairos_host = kairos_config["host"]
+        @kairos_port = kairos_config["port"]
 
         tsdb_config = config["tsdb"] || {}
         @tsdb_host = tsdb_config["host"]
