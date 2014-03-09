@@ -11,7 +11,7 @@ module Collector
       historian = new
 
       if Config.kairos
-        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, Config.kairos_port, Confir.kairos_metric_name))
+        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, Config.kairos_port, Config.kairos_metric_name, Config.kairos_protocol))
         Config.logger.info("collector.historian-adapter.added-kairos", host: Config.kairos_host)
       end
 
