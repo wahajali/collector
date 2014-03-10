@@ -6,7 +6,8 @@ gem "aws-sdk", require: false
 gem "steno"
 gem "httparty"
 gem "pry"
-gem "typhoeus"
+gem "pry-nav"
+gem "persistent_httparty"
 
 group :test do
   gem "rake"

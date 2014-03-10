@@ -1,19 +1,16 @@
+require "httparty"
+require "persistent_httparty"
+require "pry"
 require_relative "./historian/cloud_watch"
 require_relative "./historian/cf_metrics"
 require_relative "./historian/data_dog"
 require_relative "./historian/tsdb"
 require_relative "./historian/kairos"
-require "httparty"
 
 module Collector
   class Historian
     def self.build
       historian = new
-
-      if Config.kairos
-        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, Config.kairos_port, Config.kairos_metric_name, Config.kairos_protocol))
-        Config.logger.info("collector.historian-adapter.added-kairos", host: Config.kairos_host)
-      end
 
       if Config.tsdb
         historian.add_adapter(Historian::Tsdb.new(Config.tsdb_host, Config.tsdb_port))
@@ -33,6 +30,11 @@ module Collector
       if Config.cf_metrics
         historian.add_adapter(Historian::CfMetrics.new(Config.cf_metrics_api_host, HTTParty))
         Config.logger.info("collector.historian-adapter.added-cfmetrics")
+      end
+
+      if Config.kairos
+        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, Config.kairos_metric_name, HTTParty))
+        Config.logger.info("collector.historian-adapter.added-kairos", host: Config.kairos_host)
       end
 
       historian

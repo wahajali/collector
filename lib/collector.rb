@@ -17,7 +17,6 @@ require "collector/service_handler"
 require "collector/service_node_handler"
 require "collector/service_gateway_handler"
 require "collector/tsdb_connection"
-require "collector/kairos_connection"
 require "collector/historian"
 require "collector/components"
 require "pry"
@@ -46,7 +45,9 @@ module Collector
       @nats = NATS.connect(:uri => Config.nats_uri) do
         Config.logger.info("collector.nats.connected")
         # Send initially to discover what's already running
-        @nats.subscribe(ANNOUNCE_SUBJECT) { |message| process_component_discovery(message) }
+        @nats.subscribe(ANNOUNCE_SUBJECT) do |message|
+          process_component_discovery(message) 
+        end
 
         @inbox = NATS.create_inbox
         @nats.subscribe(@inbox) { |message| process_component_discovery(message) }
@@ -67,7 +68,8 @@ module Collector
       end
 
       EM.add_periodic_timer(Config.varz_interval) { fetch_varz }
-      EM.add_periodic_timer(Config.healthz_interval) { fetch_healthz }
+      #TODO: diabled fetch_healthz
+      #EM.add_periodic_timer(Config.healthz_interval) { fetch_healthz }
       EM.add_periodic_timer(Config.prune_interval) { prune_components }
 
       EM.add_periodic_timer(Config.local_metrics_interval) do
@@ -92,18 +94,27 @@ module Collector
     # @param [Hash] message the discovery message
     def process_component_discovery(message)
       message = Yajl::Parser.parse(message)
-      if message["index"]
+      if message["index"] && message['type'] == 'DEA'
         Config.logger.debug1("collector.component.discovered", type: message["type"], index: message["index"], host: message["host"])
         instances = (@components[message["type"]] ||= {})
         instances[message["host"].split(":").first] = {
           :host => message["host"],
           :index => message["index"],
           :credentials => message["credentials"],
-          :timestamp => Time.now.to_i
+          :timestamp => getTimeStamp
         }
       end
     rescue => e
       Config.logger.warn("collector.component.discovery-failure", error: e.message, backtrace: e.backtrace)
+    end
+
+    #return timestamp in seconds or milliseconds depending on configurations
+    def getTimeStamp()
+      if Config.timestamp == 'ms'
+        (Time.now.to_f * 1000).to_i
+      else
+        Time.now.to_i
+      end
     end
 
     # Prunes components that haven't been heard from in a while
@@ -133,8 +144,9 @@ module Collector
       fetch(:varz) do |http, job, instance|
         index = instance[:index]
         varz = Yajl::Parser.parse(http.response)
-        now = Time.now.to_i
+        now = getTimeStamp
 
+        binding.pry
         handler = Handler.handler(@historian, job)
         Config.logger.debug("collector.job.process", job: job, handler: handler)
         ctx = HandlerContext.new(index, now, varz)
@@ -198,7 +210,6 @@ module Collector
           end
 
           http.callback do
-              puts http.response
             begin
               yield http, job, instance
             rescue => e
@@ -220,6 +231,5 @@ module Collector
         tags: Components.get_job_tags(job).merge({job: job, index: index, deployment: Config.deployment_name, ip: host.split(":").first})
       })
     end
-
   end
 end

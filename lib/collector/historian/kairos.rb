@@ -1,32 +1,50 @@
-require 'collector/kairos_connection'
-
 module Collector
   class Historian
     class Kairos
-      attr_reader :connection
-      def initialize(host, port, metric_name, protocol)
-        @host = host
-        @port = port
+    include HTTParty
+
+      persistent_connection_adapter({ :idle_timeout => 30, :keep_alive => 30 })
+
+      def initialize(api_host, metric_name, http_client)
+        @api_host = api_host
+        @http_client = http_client
         @metric_name = metric_name
-        @protocol = protocol
-        @connection = EventMachine.connect(@host, @port, KairosConnection)
       end
 
-      def send_data(properties)
-        tags = (properties[:tags].flat_map do |key, value|
-          Array(value).map do |v|
-            "#{key}=#{v}"
-          end
-        end).sort.join(" ")
+      def send_data(data)
+        #send_metrics(formatted_metric_for_data(data))
+        formatted_metric_for_data(data)
+      end
 
-        binding.pry
-        if @protocol == "telnet"
-          command = "put #{properties[:key]} #{properties[:timestamp]} #{properties[:value]} #{tags}\n"
-        elsif @protocol == "rest"
-          #other option is to set it via em-http...ie create a new class and extend from httpconnection ...
-          command = "POST /api/v1/datapoints HTTP/1.1\r\nContent-Type: application/json\r\nConnection: Keep-Alive\r\nHost: localhost:8080\r\nContent-Length: 82\r\n\r\n{\"name\":\"test124\",\"timestamp\":\"1394313125660\",\"value\":1234,\"tags\":{\"host\":\"test\"}}"
+      private
+
+      def formatted_metric_for_data(data)
+        data[:name] = data[:tags][:name].gsub '.', '_'
+        data[:tags][:name] = data[:key]
+        data.delete :key
+        File.open('logs/data.logs', 'a') do |file| 
+          file.write(data.to_s + "\n") 
         end
-        @connection.send_data(command)
+        File.open('logs/name.logs', 'a') do |file| 
+          file.write(data[:tags][:name] + "\n")
+        end
+        data
+      end
+
+      def send_metrics(data)
+        Config.logger.debug("Sending metrics to kairos: [#{data.inspect}]")
+        body = Yajl::Encoder.encode(data)
+        # puts "body of metrics #{body}"
+        response = @http_client.post(@api_host, body: body, headers: {"Content-type" => "application/json"})
+        if response.success?
+          Config.logger.info("collector.emit-kairos.success", number_of_metrics: 1, lag_in_seconds: 0)
+        else
+          File.open('logs/failed.logs', 'a') do |file| 
+            file.write(response.to_s + "\n")
+            file.write(data.to_s + "\n") 
+          end
+          Config.logger.warn("collector.emit-kairos.fail", number_of_metrics: 1, lag_in_seconds: 0)
+        end
       end
     end
   end

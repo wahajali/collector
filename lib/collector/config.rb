@@ -4,10 +4,10 @@ module Collector
   # Singleton config used throughout
   class Config
     class << self
-      attr_accessor :index, :tsdb_host, :tsdb_port, :kairos_host, :kairos_port, :kairos_metric_name, :kairos_protocol, :aws_access_key_id,
+      attr_accessor :index, :tsdb_host, :tsdb_port, :kairos_host, :kairos_metric_name, :aws_access_key_id,
         :aws_secret_access_key, :datadog_api_key, :datadog_application_key,
         :nats_uri, :discover_interval, :varz_interval, :healthz_interval,
-        :prune_interval, :nats_ping_interval, :local_metrics_interval,
+        :prune_interval, :nats_ping_interval, :local_metrics_interval, :timestamp,
         :deployment_name, :datadog_data_threshold, :datadog_time_threshold_in_seconds, :cf_metrics_api_host
 
       def tsdb
@@ -15,7 +15,7 @@ module Collector
       end
 
       def kairos
-          kairos_host && kairos_port && kairos_metric_name && kairos_protocol
+          kairos_host && kairos_metric_name
       end
 
       def aws_cloud_watch
@@ -51,13 +51,13 @@ module Collector
         @index = config["index"].to_i
         setup_logging(config["logging"])
 
+        @timestamp = config["timestamp"] || "s"
+
         @deployment_name = config["deployment_name"] || "untitled_dev"
 
         kairos_config = config["kairos"] || {}
         @kairos_host = kairos_config["host"]
-        @kairos_port = kairos_config["port"]
         @kairos_metric_name = kairos_config["metric_name"]
-        @kairos_protocol = kairos_config["protocol"]
 
         tsdb_config = config["tsdb"] || {}
         @tsdb_host = tsdb_config["host"]
