@@ -94,7 +94,7 @@ module Collector
     # @param [Hash] message the discovery message
     def process_component_discovery(message)
       message = Yajl::Parser.parse(message)
-      if message["index"] && message['type'] == 'DEA'
+      if message["index"]
         Config.logger.debug1("collector.component.discovered", type: message["type"], index: message["index"], host: message["host"])
         instances = (@components[message["type"]] ||= {})
         instances[message["host"].split(":").first] = {
@@ -146,7 +146,6 @@ module Collector
         varz = Yajl::Parser.parse(http.response)
         now = getTimeStamp
 
-        binding.pry
         handler = Handler.handler(@historian, job)
         Config.logger.debug("collector.job.process", job: job, handler: handler)
         ctx = HandlerContext.new(index, now, varz)
