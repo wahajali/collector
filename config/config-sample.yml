@@ -6,7 +6,7 @@ logging:
   syslog: vcap.collector
 mbus: nats://uname:pwd@host:port
 kairos:
-  host: http://kairosdb.ac.crcxnet.com/api/v1/datapoints
+  host: <kairos-end-point>
   metric_name: cf-collector
 intervals:
   discover: 60
