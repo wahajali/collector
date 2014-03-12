@@ -1,3 +1,6 @@
 .idea
 .bundle
+script.sh
 config/config.yml
+logs/*
+logs/
