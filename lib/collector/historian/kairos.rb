@@ -29,14 +29,12 @@ module Collector
           file.write(data[:tags][:name] + "\n")
         end
 =end
-        #binding.pry if data[:tags][:job].include?('Application')
         data
       end
 
       def send_metrics(data)
         Config.logger.debug("Sending metrics to kairos: [#{data.inspect}]")
         body = Yajl::Encoder.encode(data)
-        # puts "body of metrics #{body}"
         response = @http_client.post(@api_host, body: body, headers: {"Content-type" => "application/json"})
         if response.success?
           Config.logger.info("collector.emit-kairos.success", number_of_metrics: 1, lag_in_seconds: 0)
