@@ -12,6 +12,9 @@ Additional metrics can be written by providing
 `Handler` plugins. See `lib/collector/handler.rb` and
 `lib/collector/handlers/dea.rb` for an example.
 
+## Installation
+Change config/config-sample.yml to config/config.yml and add the mbus address. Edit other configurations as you like. Run: `ruby collector/bin`
+
 ## Contributing
 
 Please read the [contributors' guide](https://github.com/cloudfoundry/collector/blob/master/CONTRIBUTING.md)
