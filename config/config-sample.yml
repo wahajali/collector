@@ -7,7 +7,6 @@ logging:
 mbus: nats://uname:pwd@host:port
 kairos:
   host: <kairos-end-point>
-  metric_name: cf-collector
 intervals:
   discover: 60
   varz: 10

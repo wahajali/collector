@@ -5,10 +5,9 @@ module Collector
 
       persistent_connection_adapter({ :idle_timeout => 30, :keep_alive => 30 })
 
-      def initialize(api_host, metric_name, http_client)
+      def initialize(api_host, http_client)
         @api_host = api_host
         @http_client = http_client
-        @metric_name = metric_name
       end
 
       def send_data(data)
