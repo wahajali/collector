@@ -32,6 +32,7 @@ module Collector
       end
 
       def send_metrics(data)
+        return unless data[:name] == "kairosdb-benchmark"
         Config.logger.debug("Sending metrics to kairos: [#{data.inspect}]")
         body = Yajl::Encoder.encode(data)
         response = @http_client.post(@api_host, body: body, headers: {"Content-type" => "application/json"})

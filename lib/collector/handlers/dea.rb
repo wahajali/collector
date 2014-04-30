@@ -20,9 +20,10 @@ module Collector
         end
 
         application_metrics[:instances].each do |key, val|
-          ["used_memory_in_bytes", "used_disk_in_bytes", "computed_pcpu"].each do |m|
-            tags = { name: "#{val["application_name"]}/#{context.index}", job: 'Application', index: val["instance_index"] }
-              send_app_metric(m, val[m], context, tags)
+          ["used_memory_in_bytes", "state_born_timestamp", "state_running_timestamp", "used_disk_in_bytes", "computed_pcpu"].each do |m|
+            #tags = { name: "#{val["application_name"]}/#{val["instance_index"]}", job: 'Application', index: val["instance_index"] }
+            tags = { name: "#{val["application_name"]}", job: 'Application', index: val["instance_index"] }
+            send_app_metric(m, val[m], context, tags)
           end
         end
 
@@ -64,7 +65,7 @@ module Collector
       APPLICATION_METRICS = %W[ 
         instance_index application_name used_memory_in_bytes used_disk_in_bytes computed_pcpu
       ].freeze
-
+      APPLICATION_METRICS_TIMESTAMPS = %W[state_running_timestamp state_born_timestamp].freeze
       def state_counts(context)
         metrics = DEA_STATES.each.with_object({}) { |s, h| h[s] = 0 }
         applications = {} 
@@ -78,7 +79,13 @@ module Collector
             app_data = APPLICATION_METRICS.each.with_object({}) do |key, h|
               h[key] = instance[key]
             end
+            app_data["computed_pcpu"] = app_data["computed_pcpu"] * 100 unless app_data["computed_pcpu"].nil?
 
+            tmp = APPLICATION_METRICS_TIMESTAMPS.each.with_object({}) do |key, h|
+              next  if instance[key].nil?
+              h[key] = (instance[key] * 1000).truncate
+            end
+            app_data.merge! tmp
             applications[:instances].update({ k => app_data })
           end
         end

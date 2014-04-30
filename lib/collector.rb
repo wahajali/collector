@@ -197,26 +197,26 @@ module Collector
           Config.logger.debug(
             "collector.#{type}.update",
             :host => host, :index => index, :uri => uri,
-            :instance => instance.inspect)
+              :instance => instance.inspect)
 
-          http = EventMachine::HttpRequest.new(uri).get(
-            :head => authorization_headers(instance))
+            http = EventMachine::HttpRequest.new(uri).get(
+              :head => authorization_headers(instance))
 
-          http.errback do
-            Config.logger.warn(
-              "collector.#{type}.failed",
-              :host => host, :error => http.error)
-          end
+              http.errback do
+                Config.logger.warn(
+                  "collector.#{type}.failed",
+                  :host => host, :error => http.error)
+              end
 
-          http.callback do
-            begin
-              yield http, job, instance
-            rescue => e
-              Config.logger.error(
-                "collector.#{type}.processing-failed",
-                :error => e, :backtrace => e.backtrace)
-            end
-          end
+              http.callback do
+                begin
+                  yield http, job, instance
+                rescue => e
+                  Config.logger.error(
+                    "collector.#{type}.processing-failed",
+                    :error => e, :backtrace => e.backtrace)
+                end
+              end
         end
       end
     end
