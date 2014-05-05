@@ -127,10 +127,13 @@ module Collector
     # @param [String] name the metric name
     # @param [String, Fixnum] value the metric value
     def send_metric(name, value, context, tags = {})
+      binding.pry
       tags.merge!(additional_tags(context))
       tags.merge!(Components.get_job_tags(@job))
       tags.merge!(job: @job, index: context.index)
-      tags.merge!(name: "#{@job}/#{context.index}", deployment: Config.deployment_name)
+      #tags.merge!(name: "#{@job}/#{context.index}", deployment: Config.deployment_name)
+      #updated this to only contain job and not index in the name
+      tags.merge!(name: "#{@job}", deployment: Config.deployment_name)
 
       @historian.send_data({
                                key: name,
