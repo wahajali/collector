@@ -33,7 +33,7 @@ module Collector
       end
 
       if Config.kairos
-        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, HTTParty))
+        historian.add_adapter(Historian::Kairos.new(Config.kairos_host, HTTParty, Config.deployment_name))
         Config.logger.info("collector.historian-adapter.added-kairos", host: Config.kairos_host)
       end
 

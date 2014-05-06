@@ -5,9 +5,10 @@ module Collector
 
       persistent_connection_adapter({ :idle_timeout => 30, :keep_alive => 30 })
 
-      def initialize(api_host, http_client)
+      def initialize(api_host, http_client, deployment_name)
         @api_host = api_host
         @http_client = http_client
+        @deployment_name = deployment_name
       end
 
       def send_data(data)
@@ -17,7 +18,7 @@ module Collector
       private
 
       def formatted_metric_for_data(data)
-        data[:name] = data[:tags][:name].gsub '.', '_'
+        data[:name] = "#{@deployment_name}/#{data[:tags][:name].gsub('.', '_')}"
         data[:tags][:name] = data[:key]
         data.delete :key
 =begin
@@ -33,7 +34,8 @@ module Collector
 
       def send_metrics(data)
         #TODO remove this condition in production
-        return unless data[:name] == "kairosdb-benchmark" || data[:name] == "DEA"
+        #return unless data[:name] == "kairosdb-benchmark" || data[:name] == "DEA"
+        #return unless data[:name] == "datacollector" || data[:name] == "arcadeTrigSim"
         Config.logger.debug("Sending metrics to kairos: [#{data.inspect}]")
         body = Yajl::Encoder.encode(data)
         response = @http_client.post(@api_host, body: body, headers: {"Content-type" => "application/json"})

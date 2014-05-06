@@ -127,7 +127,6 @@ module Collector
     # @param [String] name the metric name
     # @param [String, Fixnum] value the metric value
     def send_metric(name, value, context, tags = {})
-      binding.pry
       tags.merge!(additional_tags(context))
       tags.merge!(Components.get_job_tags(@job))
       tags.merge!(job: @job, index: context.index)
